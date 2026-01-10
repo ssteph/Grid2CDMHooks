@@ -18,12 +18,12 @@ function CdmHookA3:OnEnable()
     self:Print("Enable CdmHookA3")
 
     --todo: from grid2 config
-    self.watchedSpells[33763] = {
-        cdmFrame = nil,
-        cooldownID = -1,
-        cooldownInfo = nil,
-        targetUnit = nil
-    }
+    --self.watchedSpells[33763] = {
+    --    cdmFrame = nil,
+    --    cooldownID = -1,
+    --    cooldownInfo = nil,
+    --    targetUnit = nil
+    -- }
 
     self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
     self:RegisterEvent("UNIT_SPELLCAST_SENT")
@@ -36,7 +36,7 @@ end
 function CdmHookA3:OnUpdate(elapsed)
     --todo: do outside lockdown
     if self.searchCMD then
-        self:SearchCDMBuffs()
+        self:ScanCDMBuffs()
         self.searchCMD = false
     end
 
@@ -49,8 +49,12 @@ function CdmHookA3:OnUpdate(elapsed)
     end
 end
 
-function CdmHookA3:SearchCDMBuffs()
-    --self:Print("-- Search")
+function CdmHookA3:TriggerRescan()
+    --todo: maybe not necessary?!
+end
+
+function CdmHookA3:ScanCDMBuffs()
+    --todo: also scan icons
 
     local buffBarsFrame = _G["BuffBarCooldownViewer"]
     if buffBarsFrame then
@@ -70,18 +74,13 @@ function CdmHookA3:SearchCDMBuffs()
             if cooldownID and cooldownID > 0 then
 
                 local info = C_CooldownViewer and C_CooldownViewer.GetCooldownViewerCooldownInfo(cooldownID)
-                if info then
-                    --self:Print("spell is" .. info.spellID)
-
-                    local watchData = self.watchedSpells[info.spellID]
-
-                    if watchData then
-                        --self:Print("here for spell " .. info.spellID .. " frame is " .. tostring(child))
-
-                        watchData.cdmFrame = child
-                        watchData.cooldownID = cooldownID
-                        watchData.cooldownInfo = info
-                    end
+                if info and info.spellID and info.spellID > 0 then
+                    self.watchedSpells[info.spellID] = {
+                        cdmFrame = child,
+                        cooldownID = cooldownID,
+                        cooldownInfo = info,
+                        targetUnit = nil
+                    }
                 end
             end
         end
@@ -242,9 +241,10 @@ local HookFuncs = {
     end,
 
     UpdateDB = function(self)
-        CdmHookA3:Print("UpdateDB")
-        CdmHookA3:Print("spellid " .. tostring(self.dbx.spellID))
-        CdmHookA3:Print("dbx " .. tostring(self.dbx))
+        --CdmHookA3:Print("UpdateDB")
+        --CdmHookA3:Print("spellid " .. tostring(self.dbx.spellID))
+        --CdmHookA3:Print("dbx " .. tostring(self.dbx))
+        CdmHookA3:TriggerRescan()
     end,
 }
 
