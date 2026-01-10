@@ -40,7 +40,6 @@ function CdmHookA3:OnUpdate(elapsed)
         self.searchCMD = false
     end
 
-
     for spellID, watchData in pairs(self.watchedSpells) do
         if watchData.targetUnit then
             --self:Print("update for " .. watchData.targetUnit)
@@ -111,8 +110,6 @@ function CdmHookA3:UNIT_SPELLCAST_SUCCEEDED(event, unit, castGUID, spellID)
                 local watchData = self.watchedSpells[spellID]
                 if watchData then
                     local targetID = self:FindUnitId(self.lastSentCast.target)
-                    --self:Print("Watched spell cast on " .. self.lastSentCast.target .. " (" .. tostring(targetID) .. ")")
-
                     if targetID then
                         local previousTarget = watchData.targetUnit
 
@@ -122,18 +119,9 @@ function CdmHookA3:UNIT_SPELLCAST_SUCCEEDED(event, unit, castGUID, spellID)
 
                         if watchData.cooldownID > 0 then
                             watchData.cooldownInfo = C_CooldownViewer and C_CooldownViewer.GetCooldownViewerCooldownInfo(watchData.cooldownID)
-
-                            --self:Print("watchData.cooldownInfo is " .. tostring(watchData.cooldownInfo))
-
-                            --self:Print("spellid " .. watchData.cooldownInfo.spellID)
-
-                            --for k,v in pairs(watchData.cooldownInfo) do
-                            --    self:Print(k.." = "..tostring(v))
-                            --end
                         end
 
-                        --only update relevant frames
-                        --do last
+                        --todo: only update relevant frames
                         Grid2:UpdateFramesOfUnit(targetID)
                         if previousTarget then
                             Grid2:UpdateFramesOfUnit(previousTarget)
@@ -179,9 +167,9 @@ function CdmHookA3:FindUnitId(unitNameToTest)
 end
 
 function CdmHookA3:IsActive(spellID, unit)
-    local watchData = self.watchedSpells[spellID]
-    --self:Print("IsActive with unit " .. tostring(unit))
+    if not spellID then return nil end
 
+    local watchData = self.watchedSpells[spellID]
     if watchData and watchData.targetUnit then
         return UnitIsUnit(watchData.targetUnit, unit)
     end
@@ -190,16 +178,11 @@ function CdmHookA3:IsActive(spellID, unit)
 end
 
 function CdmHookA3:GetFrame(spellID, unit)
-    local watchData = self.watchedSpells[spellID]
+    if not spellID then return nil end
 
+    local watchData = self.watchedSpells[spellID]
     if watchData and watchData.targetUnit then
         if UnitIsUnit(watchData.targetUnit, unit) then
-            --self:Print("Returning frame " .. tostring(watchData.cdmFrame))
-
-            --for k,v in pairs(watchData.cdmFrame) do
-            --    self:Print(k.." = "..tostring(v))
-            --end
-
             return watchData.cdmFrame
         end
     end
@@ -208,9 +191,9 @@ function CdmHookA3:GetFrame(spellID, unit)
 end
 
 function CdmHookA3:GetInfo(spellID, unit)
-    local watchData = self.watchedSpells[spellID]
-    --self:Print("IsActive with unit " .. tostring(unit))
+    if not spellID then return nil end
 
+    local watchData = self.watchedSpells[spellID]
     if watchData and watchData.targetUnit then
         if UnitIsUnit(watchData.targetUnit, unit) then
            return watchData.cooldownInfo
@@ -224,45 +207,25 @@ end
 --- setup
 ----------------------------------------------------------------
 
---local herpderp = { }
-
 local HookFuncs = {
     IsActive = function(self, unit)
-        return CdmHookA3:IsActive(33763, unit)
+        return CdmHookA3:IsActive(self.dbx.spellID, unit)
     end,
 
     GetText = function(self, unit)
-        local result = "noinfo"
+        local result = ""
 
-        local frame = CdmHookA3:GetFrame(33763, unit)
+        local frame = CdmHookA3:GetFrame(self.dbx.spellID, unit)
         if frame then
             local auraInstanceId = frame.auraInstanceID
-            --CdmHookA3:Print("auraid: " .. tostring(auraInstanceId))
 
             if auraInstanceId and type(auraInstanceId) == "number" and auraInstanceId > 0 then
                 local auraData = C_UnitAuras.GetAuraDataByAuraInstanceID("player", auraInstanceId)
-
                 local dur = C_UnitAuras.GetAuraDurationRemaining("player", auraInstanceId)
                 result = string.format("%.1f", dur or 0)
-
-                --if auraData then
-                --    for k,v in pairs(auraData) do
-                --        CdmHookA3:Print(k.." = "..tostring(v))
-                --    end
-                --end
-                --
-
-                --todo
-                --if not C_DurationUtil or not C_DurationUtil.CreateDuration then return nil end
-                --local durObj = C_DurationUtil.CreateDuration()
-
-
             end
-            --works!!
-            --result = frame.Bar.Duration:GetText()
         end
 
-        --CdmHookA3:Print("res: " .. result)
         return result
     end,
 
@@ -276,18 +239,22 @@ local HookFuncs = {
 
     GetColor = function(self, unit)
         return 1.0, 0.0, 0.0, 1.0
-    end
-}
+    end,
 
+    UpdateDB = function(self)
+        CdmHookA3:Print("UpdateDB")
+        CdmHookA3:Print("spellid " .. tostring(self.dbx.spellID))
+        CdmHookA3:Print("dbx " .. tostring(self.dbx))
+    end,
+}
 
 Grid2.setupFunc["cdm-hook"] = function(baseKey, dbx)
     local newHook = Grid2.statusPrototype:new(baseKey, true)
     newHook:Inject(HookFuncs)
     Grid2:RegisterStatus(newHook, {"color", "icon", "text"}, baseKey, dbx)
+    newHook.dbx = dbx
 	return newHook
 end
---Grid2:DbSetStatusDefaultValue("cdm-hook", {type = "cdm-hook", color1 = {r=0,g=.6,b=1,a=.6}})
-
 
 ----------------------------------------------------------------
 --- utils
@@ -316,7 +283,9 @@ local function create_new_cdmhook(data)
 
 		--Grid2Options:RegisterStatusOptions(key, "cdm-hooks", Grid2Options.MakeStatusCustomDebuffTypeOptions, {groupOrder = 11})
 
-		data.name = nil --reset for reuse
+		--reset for reuse
+		data.name = nil
+		data.dbx.spellID = nil
 	end
 end
 
@@ -333,8 +302,9 @@ Grid2:PostHookFunc( Grid2, 'LoadOptions', function()
     } )
 
    	local hook = {
+        name = nil,
 		prefix = 'cdm-hook',
-		dbx = { type = "cdm-hook", color1 = {r=0, g=1, b=0, a=1} },
+		dbx = { type = "cdm-hook", spellID = nil, color1 = {r=1, g=1, b=0, a=1} },
 	}
 
     Grid2Options:RegisterStatusCategoryOptions( "cdm-hooks", {
@@ -360,17 +330,20 @@ Grid2:PostHookFunc( Grid2, 'LoadOptions', function()
 		arg = hook
     } )
 
+    Grid2Options:RegisterStatusOptions( "cdm-hook", "cdm-hooks", function(self, status, options, optionParams)
+           	options.spellID_opt = {
+          		type = "input", --dialogControl = "EditBoxGrid2Buffs",
+          		order = 5.1,
+          		width = "full",
+          		name = "SpellId",
+          		--usage = NewAuraUsageDescription,
+          		get = function () return status.dbx.spellID and tostring(status.dbx.spellID) or "" end,
+          		set = function (_, v)
+    				status.dbx.spellID = tonumber(v) or 33673 --todo
+    				status:Refresh()
+                end,
+           	}
+        end,
+        { isDeletable = true, displayPrefix = false } )
 
-    Grid2Options:RegisterStatusOptions( "cdm-hook", "cdm-hooks", Grid2Options.MakeStatusColorOptions, {
-        isDeletable = true, displayPrefix = false
-    } )
-
-	--Grid2Options:RegisterStatusOptions("cdm-hook", "cdm-hooks", Grid2Options.MakeStatusCustomDebuffTypeOptions, {groupOrder = 11})
 end )
---    function()
---    print("LoadOptions")
---	Grid2Options:RegisterStatusOptions("cdm-hook", "role", function(self, status, options)
---        Grid2Options.MakeStatusCustomDebuffTypeOptions(status, options)
---	end
---	, { groupOrder = 11 })
---end )
