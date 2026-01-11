@@ -42,9 +42,17 @@ function CdmHookA3:OnUpdate(elapsed)
 
     for spellID, watchData in pairs(self.watchedSpells) do
         if watchData.targetUnit then
-            --self:Print("update for " .. watchData.targetUnit)
-            --only update relevant frame
-            Grid2:UpdateFramesOfUnit(watchData.targetUnit)
+            watchData.timeElapsed = watchData.timeElapsed + elapsed
+
+            if watchData.cdmFrame and not watchData.cdmFrame.auraInstanceID and watchData.timeElapsed > 1.0 then
+                local previousTarget = watchData.targetUnit
+                watchData.targetUnit = nil
+                --only update relevant frame
+                Grid2:UpdateFramesOfUnit(previousTarget)
+            else
+                --only update relevant frame
+                Grid2:UpdateFramesOfUnit(watchData.targetUnit)
+            end
         end
     end
 end
@@ -60,26 +68,19 @@ function CdmHookA3:ScanCDMBuffs()
     if buffBarsFrame then
         local num = select("#", buffBarsFrame:GetChildren())
 
-        --self:Print("num " .. num)
-
         for i = 1, num do
             local child = select(i, buffBarsFrame:GetChildren())
-
-            --self:Print("child " .. i .. " is " .. tostring(child))
-
             local cooldownID = child.cooldownID or (child.cooldownInfo and child.cooldownInfo.cooldownID)
 
-            --self:Print("cdid is " .. tostring(cooldownID))
-
             if cooldownID and cooldownID > 0 then
-
                 local info = C_CooldownViewer and C_CooldownViewer.GetCooldownViewerCooldownInfo(cooldownID)
                 if info and info.spellID and info.spellID > 0 then
                     self.watchedSpells[info.spellID] = {
                         cdmFrame = child,
                         cooldownID = cooldownID,
                         cooldownInfo = info,
-                        targetUnit = nil
+                        targetUnit = nil,
+                        timeElapsed = 0
                     }
                 end
             end
@@ -87,18 +88,11 @@ function CdmHookA3:ScanCDMBuffs()
 
     end
 
---    for spellID, watchData in ipairs(self.watchedSpells) do
-
---    end
 end
 
 function CdmHookA3:UNIT_SPELLCAST_SENT(event, unit, targetName, castGUID, spellID)
     if not issecretvalue(unit) and unit == "player" then
-        --self:Print("player cast SENT")
-        self.lastSentCast = {
-            guid = castGUID,
-            target = targetName,
-        }
+        self.lastSentCast = { guid = castGUID, target = targetName }
     end
 end
 
@@ -113,15 +107,16 @@ function CdmHookA3:UNIT_SPELLCAST_SUCCEEDED(event, unit, castGUID, spellID)
                         local previousTarget = watchData.targetUnit
 
                         watchData.targetUnit = targetID
+                        watchData.timeElapsed = 0
 
-                        self:Print("watchData.cooldownID is " .. watchData.cooldownID)
+                        --self:Print("watchData.cooldownID is " .. watchData.cooldownID)
 
                         if watchData.cooldownID > 0 then
                             watchData.cooldownInfo = C_CooldownViewer and C_CooldownViewer.GetCooldownViewerCooldownInfo(watchData.cooldownID)
                         end
 
                         --todo: only update relevant frames
-                        Grid2:UpdateFramesOfUnit(targetID)
+                        --Grid2:UpdateFramesOfUnit(targetID)
                         if previousTarget then
                             Grid2:UpdateFramesOfUnit(previousTarget)
                         end
