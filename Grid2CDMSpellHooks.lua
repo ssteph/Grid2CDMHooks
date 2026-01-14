@@ -224,21 +224,22 @@ local HookFuncs = {
     end,
 
     GetIcon = function(self, unit)
+        --todo
         return nil
     end,
 
     GetExpirationTime = function(self, unit)
+        --todo
         return nil
     end,
 
     GetColor = function(self, unit)
-        return 1.0, 0.0, 0.0, 1.0
+        local c = self.dbx.color1
+        return c.r, c.g, c.b, c.a
     end,
 
     UpdateDB = function(self)
-        --CdmHookA3:Print("UpdateDB")
-        --CdmHookA3:Print("spellid " .. tostring(self.dbx.spellID))
-        --CdmHookA3:Print("dbx " .. tostring(self.dbx))
+        --todo might be unnecessary
         CdmHookA3:TriggerRescan()
     end,
 }
@@ -284,6 +285,10 @@ local function create_new_cdmhook(data)
 	end
 end
 
+----------------------------------------------------------------
+--- hook options in Grid2
+----------------------------------------------------------------
+
 Grid2:PostHookFunc( Grid2, 'LoadOptions', function()
 
     local L = Grid2Options.L
@@ -299,7 +304,7 @@ Grid2:PostHookFunc( Grid2, 'LoadOptions', function()
    	local hook = {
         name = nil,
 		prefix = 'cdm-hook',
-		dbx = { type = "cdm-hook", spellID = nil, color1 = {r=1, g=1, b=0, a=1} },
+		dbx = { type = "cdm-hook", spellID = nil, color1 = {r=1, g=1, b=1, a=1} },
 	}
 
     Grid2Options:RegisterStatusCategoryOptions( "cdm-hooks", {
@@ -334,10 +339,27 @@ Grid2:PostHookFunc( Grid2, 'LoadOptions', function()
           		--usage = NewAuraUsageDescription,
           		get = function () return status.dbx.spellID and tostring(status.dbx.spellID) or "" end,
           		set = function (_, v)
-    				status.dbx.spellID = tonumber(v) or 33673 --todo
+    				status.dbx.spellID = tonumber(v) or 0
     				status:Refresh()
                 end,
            	}
+
+            options.color1 = {
+                type = "color",
+                width = "full",
+                order = 5.2,
+                name = L["Color"],
+                get = function()
+                    local c = status.dbx.color1
+                    return c.r, c.g, c.b, c.a
+                end,
+                set = function(info, r, g, b, a)
+                    local c = status.dbx.color1
+                    c.r, c.g, c.b, c.a = r, g, b, a
+                    status.dbx.color1 = c
+                    status:Refresh()
+                end,
+            }
         end,
         { isDeletable = true, displayPrefix = false } )
 
