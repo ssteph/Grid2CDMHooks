@@ -25,8 +25,8 @@ function CdmHookA3:OnInitialize()
 end
 
 function CdmHookA3:OnUpdate(elapsed)
-    --todo: do outside lockdown
-    if self.searchCMD then
+
+    if self.searchCMD and not InCombatLockdown() then
         self:ScanCDMBuffs()
         self.searchCMD = false
     end
