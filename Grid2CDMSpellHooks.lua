@@ -15,22 +15,13 @@ updateFrame:HookScript("OnUpdate", function(self, elapsed)
 end)
 
 function CdmHookA3:OnEnable()
-    self:Print("Enable CdmHookA3")
-
-    --todo: from grid2 config
-    --self.watchedSpells[33763] = {
-    --    cdmFrame = nil,
-    --    cooldownID = -1,
-    --    cooldownInfo = nil,
-    --    targetUnit = nil
-    -- }
-
+    --self:Print("Enable CdmHookA3")
     self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
     self:RegisterEvent("UNIT_SPELLCAST_SENT")
 end
 
 function CdmHookA3:OnInitialize()
-    self:Print("Init CdmHookA3")
+    --self:Print("Init CdmHookA3")
 end
 
 function CdmHookA3:OnUpdate(elapsed)
@@ -123,10 +114,10 @@ function CdmHookA3:UNIT_SPELLCAST_SUCCEEDED(event, unit, castGUID, spellID)
                     end
                 end
             else
-                self:Print("??????????? castguid mismatch?!")
+                --self:Print("??????????? castguid mismatch?!")
             end
         else
-            self:Print("!!!!!!!!!!!!! a castguid was secret!!")
+            --self:Print("!!!!!!!!!!!!! a castguid was secret!!")
         end
     end
 end
