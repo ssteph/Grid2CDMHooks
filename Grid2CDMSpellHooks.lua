@@ -257,8 +257,6 @@ local HookFuncs = {
             local auraInstanceId = frame.auraInstanceID
 
             if auraInstanceId and type(auraInstanceId) == "number" and auraInstanceId > 0 then
-                --local auraData = C_UnitAuras.GetAuraDataByAuraInstanceID("player", auraInstanceId)
-                --result = auraData.duration
                 local dur = C_UnitAuras.GetAuraDuration("player", auraInstanceId)
                 result = dur:GetTotalDuration()
             end
@@ -281,8 +279,6 @@ local HookFuncs = {
             local auraInstanceId = frame.auraInstanceID
 
             if auraInstanceId and type(auraInstanceId) == "number" and auraInstanceId > 0 then
-                --local auraData = C_UnitAuras.GetAuraDataByAuraInstanceID("player", auraInstanceId)
-                --result = auraData.expirationTime
                 local dur = C_UnitAuras.GetAuraDuration("player", auraInstanceId)
                 result = dur:GetEndTime()
             end
