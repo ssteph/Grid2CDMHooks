@@ -82,15 +82,17 @@ function CdmHookA3:ScanCDMBuffs()
     if buffIconsFrame then
         local num = select("#", buffIconsFrame:GetChildren())
 
-        self:Print("BuffIconCooldownViewer " .. num)
-
         for i = 1, num do
             local child = select(i, buffIconsFrame:GetChildren())
             local cooldownID = child.cooldownID or (child.cooldownInfo and child.cooldownInfo.cooldownID)
 
+            --self:Print("cdid " .. tostring(cooldownID))
+
             if cooldownID and cooldownID > 0 then
                 local info = C_CooldownViewer and C_CooldownViewer.GetCooldownViewerCooldownInfo(cooldownID)
+
                 if info and info.spellID and info.spellID > 0 and not self.watchedSpells[info.spellID] then
+                    --self:Print("+++ created " .. info.spellID)
                     self.watchedSpells[info.spellID] = {
                         cdmFrame = child,
                         cooldownID = cooldownID,
@@ -107,6 +109,7 @@ end
 
 function CdmHookA3:UNIT_SPELLCAST_SENT(event, unit, targetName, castGUID, spellID)
     if not issecretvalue(unit) and unit == "player" then
+        targetName = targetName or UnitName("player")
         self.lastSentCast = { guid = castGUID, target = targetName }
     end
 end
@@ -329,14 +332,11 @@ end
 local function create_new_cdmhook(data)
 	local key = get_new_cdmhook_key(data)
 	if key then
-	    print("create with key: " .. key)
-
 		local dbx = Grid2.CopyTable(data.dbx)
 		Grid2.db.profile.statuses[key] = dbx
 		local newHook = Grid2.setupFunc[dbx.type](key, dbx)
 		Grid2Options:MakeStatusOptions(newHook)
 		--Grid2Options:SelectGroup('statuses', Grid2Options:GetStatusCategory(status), status.name)
-
 		--Grid2Options:RegisterStatusOptions(key, "cdm-hooks", Grid2Options.MakeStatusCustomDebuffTypeOptions, {groupOrder = 11})
 
 		--reset for reuse
