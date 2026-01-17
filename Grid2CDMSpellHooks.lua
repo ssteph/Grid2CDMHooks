@@ -392,7 +392,7 @@ Grid2:PostHookFunc( Grid2, 'LoadOptions', function()
 
     Grid2Options:RegisterStatusOptions( "cdm-hook", "cdm-hooks", function(self, status, options, optionParams)
            	options.spellID_opt = {
-          		type = "input", --dialogControl = "EditBoxGrid2Buffs",
+          		type = "input", --dialogControl = "Aura_EditBox",
           		order = 5.1,
           		width = "full",
           		name = "SpellId",
