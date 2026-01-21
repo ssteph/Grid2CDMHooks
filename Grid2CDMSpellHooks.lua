@@ -121,6 +121,7 @@ function CdmHookA3:UNIT_SPELLCAST_SUCCEEDED(event, unit, castGUID, spellID)
                 local watchData = self.watchedSpells[spellID]
                 if watchData then
                     local targetID = self:FindUnitId(self.lastSentCast.target)
+
                     if targetID then
                         local previousTarget = watchData.targetUnit
 
@@ -150,12 +151,22 @@ function CdmHookA3:UNIT_SPELLCAST_SUCCEEDED(event, unit, castGUID, spellID)
 end
 
 function CdmHookA3:FindUnitId(unitNameToTest)
+
+    local num = GetNumGroupMembers()
+
     if unitNameToTest == UnitName("player") then
+        if IsInRaid() then
+            for i = 1, num do
+                if UnitIsUnit("raid"..i, "player") then
+                    return "raid"..i
+                end
+            end
+        end
+
         return "player"
     end
 
     local prefix = "party"
-    local num = GetNumGroupMembers()
 
     if IsInRaid() then
         prefix = "raid"
