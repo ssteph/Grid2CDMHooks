@@ -254,6 +254,13 @@ function CdmHookA3:GetTexture(spellID, unit)
     return nil
 end
 
+function CdmHookA3:IsHookable(spellID)
+    if self.watchedSpells[spellID] then
+        return true
+    end
+    return false
+end
+
 ----------------------------------------------------------------
 --- setup
 ----------------------------------------------------------------
@@ -441,6 +448,22 @@ Grid2:PostHookFunc( Grid2, 'LoadOptions', function()
                 options.spellID_desc.name = result
             end
 
+            local textSpellNotFound = "|cFFFF0000Spell NOT found|r in CDM - make sure you track the aura as an icon or bar in the Cooldownmanager"
+            local textSpellFound = "|cFF00FF00Spell found|r in CDM"
+
+            local updateFoundInfo = function(id)
+                local result = ""
+
+                if id and type(id) == "number" then
+                    if CdmHookA3:IsHookable(id) then
+                        result = textSpellFound
+                    else
+                        result = textSpellNotFound
+                    end
+                end
+                options.spellIDcdm_desc.name = result
+            end
+
        	    options.spellID_opt = {
           		type = "input", --dialogControl = "Aura_EditBox",
           		order = 5.1,
@@ -451,6 +474,7 @@ Grid2:PostHookFunc( Grid2, 'LoadOptions', function()
     				status.dbx.spellID = tonumber(v) or 0
                     status:Refresh()
                     buildSpellText(status.dbx.spellID)
+                    updateFoundInfo(status.dbx.spellID)
                 end,
            	}
 
@@ -462,14 +486,13 @@ Grid2:PostHookFunc( Grid2, 'LoadOptions', function()
 
             buildSpellText(status.dbx.spellID)
 
---[[
            	options.spellIDcdm_desc = {
           		type = "description",
           		order = 5.3,
-                name = "CDM: |cnred:not found|r",
+                name = "",
             }
---]]
 
+            updateFoundInfo(status.dbx.spellID)
 --[[
            	options.header2 = {
           		type = "header",
