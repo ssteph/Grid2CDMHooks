@@ -400,7 +400,7 @@ Grid2:PostHookFunc( Grid2, 'LoadOptions', function()
    	local hook = {
         name = nil,
 		prefix = 'cdm-hook',
-		dbx = { type = "cdm-hook", spellID = nil, color1 = {r=1, g=1, b=1, a=1} },
+		dbx = { type = "cdm-hook", spellID = nil, alternateSpellID = nil, color1 = {r=1, g=1, b=1, a=1} },
 	}
 
     Grid2Options:RegisterStatusCategoryOptions( "cdm-hooks", {
@@ -434,7 +434,8 @@ Grid2:PostHookFunc( Grid2, 'LoadOptions', function()
            	}
 
             local buildSpellText = function(id)
-                local spellInfo = C_Spell.GetSpellInfo(id)
+                local spellInfo = nil
+                if id and type(id) == "number" then spellInfo = C_Spell.GetSpellInfo(id) end
                 local result = "Spell: |c00ffff00" .. (spellInfo and spellInfo.name or "UNKNOWN") .. "|r"
                 if spellInfo then result = result .. " |T" .. spellInfo.iconID .. ":0|t" end
                 options.spellID_desc.name = result
@@ -461,16 +462,50 @@ Grid2:PostHookFunc( Grid2, 'LoadOptions', function()
 
             buildSpellText(status.dbx.spellID)
 
+--[[
+           	options.spellIDcdm_desc = {
+          		type = "description",
+          		order = 5.3,
+                name = "CDM: |cnred:not found|r",
+            }
+--]]
+
+--[[
            	options.header2 = {
           		type = "header",
           		order = 6,
+          		name = "(Optional) Alternate Spell",
+           	}
+
+           	options.alternateSpellID_desc = {
+          		type = "description",
+          		order = 7.1,
+                name = "In some cases the aura that you want to track will be applied indirectly by another spell cast. \nFor example: priest's Flash Heal can apply the Protective Light aura. In that case enter Protective Light's SpellID above and Flash Heal's SpellID in the box below.",
+            }
+
+       	    options.alternateSpellID_opt = {
+          		type = "input",
+          		order = 7.2,
+                width = "full",
+                name = "(Optional) SpellID of a cast to look for",
+          		get = function () return status.dbx.alternateSpellID and tostring(status.dbx.alternateSpellID) or "" end,
+          		set = function (_, v)
+    				status.dbx.alternateSpellID = tonumber(v) or 0
+                    status:Refresh()
+                    --buildSpellText(status.dbx.alternateSpellID)
+                end,
+           	}
+--]]
+           	options.header3 = {
+          		type = "header",
+          		order = 8,
           		name = "Misc",
            	}
 
             options.color1 = {
                 type = "color",
                 width = "full",
-                order = 7,
+                order = 9,
                 name = L["Color"],
                 get = function()
                     local c = status.dbx.color1
