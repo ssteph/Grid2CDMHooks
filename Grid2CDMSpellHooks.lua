@@ -79,6 +79,11 @@ function CdmHookA3:TryAddToWatchedSpells(cdmFrame)
     if cooldownID and cooldownID > 0 then
         local info = C_CooldownViewer and C_CooldownViewer.GetCooldownViewerCooldownInfo(cooldownID)
 
+        --TODO: handle "linked" spell
+        --for _, linkedSpellID in ipairs(info.linkedSpellIDs) do
+        --    self:Print("spell " .. info.spellID .. " has linked: " .. tostring(linkedSpellID))
+        --end
+
         if info and info.spellID and info.spellID > 0 and not self.watchedSpells[info.spellID] then
             local spellInfo = C_Spell.GetSpellInfo(info.spellID)
             local texture = spellInfo and spellInfo.iconID or nil
@@ -451,6 +456,7 @@ Grid2:PostHookFunc( Grid2, 'LoadOptions', function()
             local textSpellNotFound = "|cFFFF0000Spell NOT found|r in CDM - make sure you track the aura as an icon or bar in the Cooldownmanager"
             local textSpellFound = "|cFF00FF00Spell found|r in CDM"
 
+            --TODO: handle update of cdm config
             local updateFoundInfo = function(id)
                 local result = ""
 
@@ -519,6 +525,7 @@ Grid2:PostHookFunc( Grid2, 'LoadOptions', function()
                 end,
            	}
 --]]
+
            	options.header3 = {
           		type = "header",
           		order = 8,
