@@ -19,6 +19,9 @@ end)
 function CdmHookA3:OnEnable()
     self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
     self:RegisterEvent("UNIT_SPELLCAST_SENT")
+
+    self:RegisterEvent('ACTIVE_PLAYER_SPECIALIZATION_CHANGED')
+    self:RegisterEvent('TRAIT_CONFIG_UPDATED')
 end
 
 function CdmHookA3:OnInitialize()
@@ -169,6 +172,14 @@ function CdmHookA3:UNIT_SPELLCAST_SUCCEEDED(event, unit, castGUID, spellID)
             --self:Print("!!!!!!!!!!!!! a castguid was secret!!")
         end
     end
+end
+
+function CdmHookA3:ACTIVE_PLAYER_SPECIALIZATION_CHANGED()
+    self:TriggerRescan()
+end
+
+function CdmHookA3:TRAIT_CONFIG_UPDATED()
+    self:TriggerRescan()
 end
 
 function CdmHookA3:FindUnitId(unitNameToTest)
