@@ -184,6 +184,8 @@ end
 
 function CdmHookA3:FindUnitId(unitNameToTest)
 
+    if issecretvalue(unitNameToTest) then return nil end
+
     local num = GetNumGroupMembers()
 
     if unitNameToTest == UnitName("player") then
