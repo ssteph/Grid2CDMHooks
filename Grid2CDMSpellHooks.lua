@@ -4,6 +4,8 @@ local ADDON_NAME, g2cdmhooks = ...
 --- A3
 ----------------------------------------------------------------
 
+local hooks = { }
+
 CdmHookA3 = LibStub("AceAddon-3.0"):NewAddon("CdmHookA3", "AceEvent-3.0", "AceConsole-3.0")
 CdmHookA3.lastSentCast = nil
 CdmHookA3.watchedSpells = { }
@@ -26,6 +28,14 @@ end
 
 function CdmHookA3:OnInitialize()
     --self:Print("Init CdmHookA3")
+end
+
+function CdmHookA3:UpdateUnitIndicator(unit)
+    for _, hook in pairs(hooks) do
+        if hook.enabled then
+            hook:UpdateIndicators(unit)
+        end
+    end
 end
 
 function CdmHookA3:OnUpdate(elapsed)
@@ -59,7 +69,8 @@ function CdmHookA3:OnUpdate(elapsed)
 
     for unit, _ in pairs(self.unitsToUpdate) do
         --only update relevant frame
-        Grid2:UpdateFramesOfUnit(unit)
+        --Grid2:UpdateFramesOfUnit(unit)
+        self:UpdateUnitIndicator(unit)
     end
 
     self.unitsToUpdate = { }
@@ -162,7 +173,8 @@ function CdmHookA3:UNIT_SPELLCAST_SUCCEEDED(event, unit, castGUID, spellID)
                     end
 
                     if previousTarget then
-                        Grid2:UpdateFramesOfUnit(previousTarget)
+                        --Grid2:UpdateFramesOfUnit(previousTarget)
+                        self:UpdateUnitIndicator(previousTarget)
                     end
                 end
             else
@@ -373,6 +385,10 @@ Grid2.setupFunc["cdm-hook"] = function(baseKey, dbx)
     newHook:Inject(HookFuncs)
     Grid2:RegisterStatus(newHook, {"color", "icon", "text", "percent"}, baseKey, dbx)
     newHook.dbx = dbx
+
+    --TODO: could do in OnEnable instead
+    tinsert(hooks, newHook)
+
 	return newHook
 end
 
